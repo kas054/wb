@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h>Welcome back, {{ name }}</h>
+<p>Загрузите фото профиля: </p>
+
+<form action="/users/{{ name }}" enctype='multipart/form-data' method='post'>
+  <input type="file" id="file" name="file" accept=".jpg, .jpeg, .png" />>
+  <input type="submit">
+</form>
+</body>
+</html>
