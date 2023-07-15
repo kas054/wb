@@ -27,7 +27,6 @@ def on_shutdown():
     # connection_close()
 
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/css", StaticFiles(directory="css"), name="css")
 app.mount("/fonts", StaticFiles(directory="tr1/fonts"), name="fonts")
 app.mount("/js", StaticFiles(directory="tr1/js"), name="js")
@@ -61,10 +60,12 @@ def get_image(filename: str):
 
 
 @app.get("/item", response_class=HTMLResponse)
-def item_page(request: Request, prod_id: int, conn: sqlite3.Connection = Depends(get_db)):
-    chocolate_info = conn.execute("Select id, name, available, image from chocolate where id = (?)",
-                                  (prod_id,)).fetchone()
-    return templates.TemplateResponse("items.html", {"request": request, "info": chocolate_info})
+def item_page(request: Request, id, conn: sqlite3.Connection = Depends(get_db)):  # remove id: int
+    vuln_chocolate_info = conn.execute("Select id, name, available, image from chocolate where id = \'{}\'".format(id),
+                                       ).fetchone()
+    # chocolate_info = conn.execute("Select id, name, available, image from chocolate where id = (?)",
+    #   (id,)).fetchone()
+    return templates.TemplateResponse("items.html", {"request": request, "info": vuln_chocolate_info})
 
 
 @app.get("/chocolate", response_class=HTMLResponse)
@@ -80,9 +81,9 @@ async def login(request: Request, message: Optional[str] = None):
 
 def check_user(user_login, conn):
     check = "SELECT EXISTS(SELECT 1 FROM users WHERE name=(?));"
-    # vuln_check = 'SELECT EXISTS(SELECT 1 FROM users WHERE name={name})'.format(name=login)
-    return conn.execute(check, (user_login,)).fetchone()[0]
-    # return conn.execute(vuln_check).fetchone()[0]
+    vuln_check = 'SELECT EXISTS(SELECT 1 FROM users WHERE name=\'{}\')'.format(user_login)
+    # return conn.execute(check, (user_login,)).fetchone()[0]
+    return conn.execute(vuln_check).fetchone()[0]
 
 
 def get_password(password) -> str:
@@ -139,18 +140,8 @@ def check_host(request: Request, host=Form(...)):
 
 
 @app.post("/users/{name}")
-async def user(file: UploadFile = File(...)):
+async def user():
     return "ok"
-    try:
-        contents = await file.read()
-        async with aiofiles.open(file.filename, 'wb') as f:
-            await f.write(contents)
-    except Exception:
-        return {"message": "There was an error uploading the file"}
-    finally:
-        await file.close()
-
-    return {"message": f"Successfuly uploaded {file.filename}"}
 
 
 @app.get("/users/{name}")
@@ -168,3 +159,15 @@ def search(request: Request, conn: sqlite3.Connection = Depends(get_db), product
     vuln_search = "select id, name, available, image from chocolate where name=\"{}\"".format(product_name)
     chocolate_info = conn.execute(vuln_search).fetchone()
     return templates.TemplateResponse("items.html", {"request": request, "info": chocolate_info})
+
+
+@app.get("/change_passwd", response_class=HTMLResponse)
+def change(request: Request):
+    return templates.TemplateResponse("change_passwd.html", {"request": request})
+
+
+""""" @app.post("/change_passwd", response_class=HTMLResponse)
+def change(request: Request, message: Optional[str] = None, old_passwd: str = Form(...), new_passwd: str = Form(...),
+           conn: sqlite3.Connection = Depends(get_db)):
+    request.session.
+    return templates.TemplateResponse("change_passwd.html", {"request": request, "message": message}) """

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Change password</h2>
+
+<form action="/change_passwd" method="post">
+    <label for="old_passwd">Current password:</label><br>
+    <input type="text" id="old_passwd" name="old_passwd"><br>
+    <label for="new_passwd">New password:</label><br>
+    <input type="text" id="new_passwd" name="new_passwd"><br>
+    <input type="submit" value="Submit">
+</form>
+{% if message is not none %}
+<div id="message">{{ message | safe }}</div>
+{% endif %}
+
+</body>
